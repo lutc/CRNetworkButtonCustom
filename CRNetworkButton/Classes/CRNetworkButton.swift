@@ -16,6 +16,12 @@ public enum CRState {
     case finished
 }
 
+public enum CRFollowState : Int {
+    case notFollow  = 0
+    case follow     = 1
+    case waiting    = 2
+    case declined   = 3
+}
 
 private struct Constants {
     
@@ -68,15 +74,32 @@ open class CRNetworkButton: UIButton {
             borderLayer.borderColor = crBorderColor.cgColor
         }
     }
-    @IBInspectable open var startText:String = "Go" {
-        didSet {
-            updateText()
+
+    // possible titles for button
+    fileprivate let textFollowing   = "Following"
+    fileprivate let textFollow      = "Follow"
+    fileprivate let textRequested   = "Requested"
+    fileprivate let textDeclined    = "Declined"
+
+    func getText(_ forState:CRFollowState) -> String {
+        switch forState {
+        case .declined:
+            return textDeclined
+        case .notFollow:
+            return textFollow
+        case .waiting:
+            return textRequested
+        case .follow:
+            return textFollowing
         }
     }
-    @IBInspectable open var endText:String = "Done" {
-        didSet {
-            updateText()
-        }
+
+    var startText:String {
+        return getText(folStartState)
+    }
+
+    var endText:String {
+        return getText(folResultState)
     }
     
     @IBInspectable open var errorText:String = "Error"
@@ -141,9 +164,9 @@ open class CRNetworkButton: UIButton {
         return CGPoint(x: startBounds.midX, y: startBounds.midY)
     }
     
-    fileprivate var stopedByError:Bool = false
-    
-    
+    fileprivate var folResultState:CRFollowState = .follow
+    fileprivate var folStartState:CRFollowState = .notFollow
+
     /**
      constraints has low priority
      */
@@ -246,17 +269,25 @@ open class CRNetworkButton: UIButton {
         crState = .finishing
     }
     
-    open func stopByError() {
-        stopedByError = true
+    open func stopByFollowing() {
+        folResultState = .follow
         stopAnimate()
     }
-    
+
+    open func stopByWaiting() {
+        folResultState = .waiting
+        stopAnimate()
+    }
+
+    open func stopByNoFollow() {
+        folResultState = .notFollow
+        stopAnimate()
+    }
+
     open func updateProgress(_ progress: CGFloat) {
         progressLayer.strokeEnd = progress
     }
-    
-    
-    
+
     // MARK: - Selector && Action
     func touchUpInside(_ sender: CRNetworkButton) {
         guard crState != .finished else {
@@ -377,13 +408,13 @@ extension CRNetworkButton {
     //MARK: Update
     fileprivate func updateText() {
         guard !shouldAutoReverse else {
-            setTitle(startText, for: UIControlState())
+            setTitle(startText, for: .normal)
             return
         }
         
         switch crState {
         case .ready:
-            setTitle(startText, for: UIControlState())
+            setTitle(startText, for: .normal)
             
         case .loading:
             fallthrough
@@ -392,7 +423,7 @@ extension CRNetworkButton {
             fallthrough
             
         case .finished:
-            setTitle(stopedByError ? errorText : endText, for: UIControlState())
+            setTitle(endText, for: .normal)
         }
     }
     fileprivate func clearLayerContext() {
@@ -431,9 +462,6 @@ extension CRNetworkButton {
             finishAnimation()
             
         case .finished:
-            if stopedByError {
-                stopedByError = false
-            }
             break
         }
     }
@@ -617,7 +645,7 @@ extension CRNetworkButton {
             let dot = CAShapeLayer()
             dot.bounds = dotRect
             dot.position = dotPosition
-            dot.fillColor = stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
+            dot.fillColor = UIColor.red.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
             dot.path = UIBezierPath(ovalIn: dot.bounds).cgPath
             dots.append(dot)
         }
@@ -629,7 +657,7 @@ extension CRNetworkButton {
         }
         
         finishLoadingGroup.notify(queue: DispatchQueue.main) {
-            self.layer.backgroundColor = self.stopedByError ? self.crErrorColor.cgColor : self.crDotColor.cgColor
+            self.layer.backgroundColor = UIColor.blue.cgColor// self.stopedByError ? self.crErrorColor.cgColor : self.crDotColor.cgColor
             self.borderLayer.opacity = 0
             self.clearLayerContext()
             self.checkMarkAndBoundsAnimation()
@@ -654,12 +682,13 @@ extension CRNetworkButton {
                                 1]
         opacityAnim.duration = totalTimeCheckMark
         
-        stopedByError ? errorCrossMarkLayer.add(opacityAnim, forKey: nil) : checkMarkLayer.add(opacityAnim, forKey: nil)
+//        stopedByError ? errorCrossMarkLayer.add(opacityAnim, forKey: nil) :
+            checkMarkLayer.add(opacityAnim, forKey: nil)
         updateText()
-        if stopedByError {
-            setTitleColor(crErrorColor, for: UIControlState())
-        }
-        borderLayer.borderColor = stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
+//        if stopedByError {
+//            setTitleColor(crErrorColor, for: UIControlState())
+//        }
+        borderLayer.borderColor = UIColor.green.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
         borderLayer.opacity = 1
         
         layer.masksToBounds = false
@@ -704,8 +733,8 @@ extension CRNetworkButton {
         
         let colorAnim = CABasicAnimation(keyPath: "backgroundColor")
         colorAnim.toValue = (shouldAutoReverse ? startBackgroundColor : UIColor.white).cgColor
-        colorAnim.fromValue = stopedByError ? crErrorColor : crDotColor.cgColor
-        
+        colorAnim.fromValue = /* TODO stopedByError ? crErrorColor :*/ crDotColor.cgColor
+
         let layerGroup = CAAnimationGroup()
         layerGroup.animations = [boundsAnim, colorAnim]
         

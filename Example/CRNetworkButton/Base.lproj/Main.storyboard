@@ -83,9 +83,6 @@
                                     <userDefinedRuntimeAttribute type="string" keyPath="startText" value="SEND 0"/>
                                     <userDefinedRuntimeAttribute type="string" keyPath="endText" value="DONE 7"/>
                                     <userDefinedRuntimeAttribute type="boolean" keyPath="progressMode" value="NO"/>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="dotLength">
-                                        <real key="value" value="5"/>
-                                    </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
                                 <connections>
                                     <action selector="topButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="DPX-eX-fA4"/>
