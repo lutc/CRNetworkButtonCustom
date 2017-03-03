@@ -1,4 +1,4 @@
-// Custom 
+// Custom
 //  CRNetworkButton.swift
 //  CRNetworkButton
 //
