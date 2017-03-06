@@ -629,44 +629,44 @@ extension CRNetworkButton {
     // 2nd part of finish animation
     fileprivate func dotsScalingAnimation() {
         // dot will scaling
-        let animationScale = CABasicAnimation(keyPath: "transform.scale")
-        animationScale.duration = Constants.resetLinesPositionAnimDuration
-        animationScale.toValue = NSNumber(value: Float(bounds.height * 2/3) as Float)
-        animationScale.isRemovedOnCompletion = false
-        animationScale.fillMode = kCAFillModeForwards
-        animationScale.delegate = self
-        assignContext(.LoadingFinishing, anim: animationScale)
+//        let animationScale = CABasicAnimation(keyPath: "transform.scale")
+//        animationScale.duration = Constants.resetLinesPositionAnimDuration
+//        animationScale.toValue = NSNumber(value: Float(bounds.height * 2/3) as Float)
+//        animationScale.isRemovedOnCompletion = false
+//        animationScale.fillMode = kCAFillModeForwards
+//        animationScale.delegate = self
+//        assignContext(.LoadingFinishing, anim: animationScale)
         
         // dots will preparing
-        let dotStartSize = CGSize(width: 2, height: 2)
-        let angleOffset = 2*CGFloat(M_PI) / CGFloat(linesCount)
-        let radius = circleBounds.midY - (crLineWidth * 2)
+//        let dotStartSize = CGSize(width: 2, height: 2)
+//        let angleOffset = 2*CGFloat(M_PI) / CGFloat(linesCount)
+//        let radius = circleBounds.midY - (crLineWidth * 2)
         
-        var dots = [CAShapeLayer]()
-        for i in 0..<linesCount {
-            
-            let angle = angleOffset * CGFloat(i) + (dotLength / 2)
-            var dotPosition = CGPoint(x: radius * cos(angle), y: radius * sin(angle))
-            dotPosition.x += bounds.midX
-            dotPosition.y += bounds.midY
-            let dotRect = CGRect(origin: CGPoint.zero, size: dotStartSize)
-            
-            let dot = CAShapeLayer()
-            dot.bounds = dotRect
-            dot.position = dotPosition
-            dot.fillColor = UIColor.green.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
-            dot.path = UIBezierPath(ovalIn: dot.bounds).cgPath
-            dots.append(dot)
-        }
-        
-        for dot in dots {
-            self.layer.addSublayer( dot )
-            dot.add(animationScale, forKey: "dotScale")
-            finishLoadingGroup.enter()
-        }
+//        var dots = [CAShapeLayer]()
+//        for i in 0..<linesCount {
+//            
+//            let angle = angleOffset * CGFloat(i) + (dotLength / 2)
+//            var dotPosition = CGPoint(x: radius * cos(angle), y: radius * sin(angle))
+//            dotPosition.x += bounds.midX
+//            dotPosition.y += bounds.midY
+//            let dotRect = CGRect(origin: CGPoint.zero, size: dotStartSize)
+//            
+//            let dot = CAShapeLayer()
+//            dot.bounds = dotRect
+//            dot.position = dotPosition
+//            dot.fillColor = UIColor.black.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
+//            dot.path = UIBezierPath(ovalIn: dot.bounds).cgPath
+//            dots.append(dot)
+//        }
+//        
+//        for dot in dots {
+//            self.layer.addSublayer( dot )
+//            dot.add(animationScale, forKey: "dotScale")
+//            finishLoadingGroup.enter()
+//        }
         
         finishLoadingGroup.notify(queue: DispatchQueue.main) {
-            self.layer.backgroundColor = UIColor.blue.cgColor// self.stopedByError ? self.crErrorColor.cgColor : self.crDotColor.cgColor
+//            self.layer.backgroundColor = UIColor.red.cgColor// self.stopedByError ? self.crErrorColor.cgColor : self.crDotColor.cgColor
             self.borderLayer.opacity = 0
             self.clearLayerContext()
             self.checkMarkAndBoundsAnimation()
@@ -692,7 +692,7 @@ extension CRNetworkButton {
         opacityAnim.duration = totalTimeCheckMark
         
 //        stopedByError ? errorCrossMarkLayer.add(opacityAnim, forKey: nil) :
-            checkMarkLayer.add(opacityAnim, forKey: nil)
+//            checkMarkLayer.add(opacityAnim, forKey: nil)
         updateText()
 //        if stopedByError {
 //            setTitleColor(crErrorColor, for: UIControlState())
@@ -747,8 +747,8 @@ extension CRNetworkButton {
         let layerGroup = CAAnimationGroup()
         layerGroup.animations = [boundsAnim, colorAnim]
         
-        layerGroup.duration = Constants.bounceDuration * borderBounce.keyTimes![1].doubleValue
-        layerGroup.beginTime = borderBounce.beginTime
+        layerGroup.duration = Constants.bounceDuration //Constants.bounceDuration * borderBounce.keyTimes![1].doubleValue
+        layerGroup.beginTime = CACurrentMediaTime() + opacityAnim.duration //borderBounce.beginTime
         layerGroup.delegate = self
         layerGroup.fillMode = kCAFillModeBoth
         layerGroup.isRemovedOnCompletion = false

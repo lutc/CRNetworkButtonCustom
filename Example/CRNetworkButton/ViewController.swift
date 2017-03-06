@@ -67,7 +67,16 @@ extension ViewController {
     @IBAction func secondButtonTapped(_ sender: CRNetworkButton) {
         sender.isSelected = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(2*NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
-            sender.stopByWaiting()
+            sender.stopAnimate()
+            DispatchQueue.main.async {
+                self.a = !self.a
+                if self.a {
+                    sender.stopByWaiting()
+                }
+                else {
+                    sender.stopByNoFollow()
+                }
+            }
         }
     }
     
