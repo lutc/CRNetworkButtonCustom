@@ -11,6 +11,7 @@ import CRNetworkButton
 
 class ViewController: UIViewController {
     
+    var a = false
     @IBOutlet weak var button: CRNetworkButton!
     @IBOutlet weak var failableButtton: CRNetworkButton!
     
@@ -52,13 +53,19 @@ extension ViewController {
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(2*NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             sender.stopAnimate()
             DispatchQueue.main.async {
-                sender.resetToReady()
+                self.a = !self.a
+                if self.a {
+                    sender.stopByWaiting()
+                }
+                else {
+                    sender.stopByNoFollow()
+                }
             }
-
         }
     }
     
     @IBAction func secondButtonTapped(_ sender: CRNetworkButton) {
+        sender.isSelected = true
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(2*NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
             sender.stopByWaiting()
         }
@@ -71,14 +78,14 @@ extension ViewController {
     }
     
     @IBAction func failableButtonTapped(_ sender: CRNetworkButton) {
-        guard !sender.isSelected else {
-            if sender.currState == .finished {
-                sender.resetToReady()
-                sender.isSelected = false
-            }
-            return
-        }
-        
+//        guard !sender.isSelected else {
+//            if sender.currState == .finished {
+//                sender.resetToReady()
+//                sender.isSelected = false
+//            }
+//            return
+//        }
+//        
         sender.isSelected = true
         FakeNetworkManager.performRequest(withSuccess: { (result) in
             sender.stopAnimate()

@@ -1,4 +1,4 @@
-// Custom
+//
 //  CRNetworkButton.swift
 //  CRNetworkButton
 //
@@ -48,6 +48,8 @@ enum AnimContext: String {
 @IBDesignable
 open class CRNetworkButton: UIButton {
     
+    let radiusDivider : CGFloat = 4
+    
     // MARK: - Public variables
     
     /// measure in radians
@@ -63,7 +65,7 @@ open class CRNetworkButton: UIButton {
     /// color for error stop
     @IBInspectable open var crErrorColor: UIColor = UIColor.red
     /// line width of the border
-    @IBInspectable open var crLineWidth: CGFloat = 5
+    @IBInspectable open var crLineWidth: CGFloat = 2
     /// after stop animate will set to default state
     @IBInspectable open var shouldAutoReverse: Bool = false
     /// allow to show progress, use **updateProgress** to manage button progress
@@ -127,7 +129,7 @@ open class CRNetworkButton: UIButton {
         layer.strokeColor = self.crDotColor.cgColor
         layer.bounds = self.circleBounds
         layer.path = UIBezierPath(arcCenter: self.boundsCenter, radius: self.boundsCenter.y - self.crLineWidth / 2,
-                                  startAngle: CGFloat(-M_PI_2), endAngle: 3*CGFloat(M_PI_2), clockwise: true).cgPath
+                                  startAngle: CGFloat(-M_PI_2), endAngle: 3 * CGFloat(M_PI_2), clockwise: true).cgPath
         
         layer.strokeEnd = 0
         layer.lineCap = kCALineCapRound
@@ -151,6 +153,12 @@ open class CRNetworkButton: UIButton {
     }
     
     fileprivate var circleBounds: CGRect {
+        var newRect = startBounds
+        newRect?.size.width = startBounds.height / 4
+        return newRect!
+    }
+    
+    fileprivate var circleBackBounds: CGRect {
         var newRect = startBounds
         newRect?.size.width = startBounds.height
         return newRect!
@@ -222,9 +230,12 @@ open class CRNetworkButton: UIButton {
             if layer.animation( forKey: AnimKeys.bounds ) == nil {
                 bounds = circleBounds
             }
+            layer.cornerRadius = bounds.midY
+        }
+        else {
+            layer.cornerRadius = bounds.midY / radiusDivider
         }
         
-        layer.cornerRadius = bounds.midY
     }
     
     
@@ -290,8 +301,8 @@ open class CRNetworkButton: UIButton {
 
     // MARK: - Selector && Action
     func touchUpInside(_ sender: CRNetworkButton) {
-        guard crState != .finished else {
-            return
+        if crState == .finished {
+            resetToReady()
         }
         
         if animateOnTap {
@@ -299,8 +310,6 @@ open class CRNetworkButton: UIButton {
         }
     }
 }
-
-
 
 // MARK: - Animation Delegate
 extension CRNetworkButton : CAAnimationDelegate {
@@ -337,7 +346,7 @@ extension CRNetworkButton {
     fileprivate func layoutStartBounds() {
         startBounds = bounds
         borderLayer.bounds = startBounds
-        borderLayer.cornerRadius = startBounds.midY
+        borderLayer.cornerRadius = startBounds.midY / radiusDivider
         borderLayer.position = CGPoint(x: startBounds.midX, y: startBounds.midY)
     }
     
@@ -473,7 +482,7 @@ extension CRNetworkButton {
     // animate button to loading state, use completion to start loading animation
     fileprivate func prepareLoadingAnimation(_ completion: (()->())?) {
         let boundAnim = CABasicAnimation(keyPath: "bounds")
-        boundAnim.toValue = NSValue(cgRect: circleBounds)
+        boundAnim.toValue = NSValue(cgRect: circleBackBounds)
         
         let colorAnim = CABasicAnimation(keyPath: "backgroundColor")
         colorAnim.toValue = UIColor.white.cgColor
@@ -495,7 +504,7 @@ extension CRNetworkButton {
         borderAnim.toValue = crLineWidth
         
         let borderBounds = CABasicAnimation(keyPath: "bounds")
-        borderBounds.toValue = NSValue(cgRect: circleBounds)
+        borderBounds.toValue = NSValue(cgRect: circleBackBounds)
         
         let borderPosition = CABasicAnimation(keyPath: "position")
         borderPosition.toValue = NSValue(cgPoint: boundsCenter)
@@ -514,11 +523,11 @@ extension CRNetworkButton {
         
         prepareGroup.notify(queue: DispatchQueue.main) {
             self.borderLayer.borderWidth = self.crLineWidth
-            self.borderLayer.bounds = self.circleBounds
+            self.borderLayer.bounds = self.circleBackBounds
             self.borderLayer.position = self.boundsCenter
             
             self.layer.backgroundColor = UIColor.white.cgColor
-            self.bounds = self.circleBounds
+            self.bounds = self.circleBackBounds
             
             self.borderLayer.removeAllAnimations()
             self.layer.removeAllAnimations()
@@ -534,8 +543,8 @@ extension CRNetworkButton {
     
     // start default loading
     fileprivate func startLoadingAnimation() {
-        let arCenter = boundsCenter
-        let radius   = circleBounds.midX - crLineWidth / 2
+        let arCenter    = boundsCenter
+        let radius      = circleBounds.midX - crLineWidth / 2
         
         var lines = [CAShapeLayer]()
         let lineOffset:CGFloat = 2 * CGFloat(M_PI) / CGFloat(linesCount)
@@ -645,7 +654,7 @@ extension CRNetworkButton {
             let dot = CAShapeLayer()
             dot.bounds = dotRect
             dot.position = dotPosition
-            dot.fillColor = UIColor.red.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
+            dot.fillColor = UIColor.green.cgColor // stopedByError ? crErrorColor.cgColor : crDotColor.cgColor
             dot.path = UIBezierPath(ovalIn: dot.bounds).cgPath
             dots.append(dot)
         }
